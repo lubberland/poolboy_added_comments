@@ -114,7 +114,7 @@ init({PoolArgs, WorkerArgs}) ->
     init(PoolArgs, WorkerArgs, #state{waiting = Waiting, monitors = Monitors}).
 
 init([{worker_module, Mod} | Rest], WorkerArgs, State) when is_atom(Mod) ->
-    %启动worker_module的sup监控，simple_one_for_one模式，Sup是sup监控进程的pid
+    %启动worker的sup监控，simple_one_for_one模式，Sup是sup监控进程的pid
     {ok, Sup} = poolboy_sup:start_link(Mod, WorkerArgs),
     init(Rest, WorkerArgs, State#state{supervisor = Sup});
 init([{size, Size} | Rest], WorkerArgs, State) when is_integer(Size) ->
@@ -124,7 +124,7 @@ init([{max_overflow, MaxOverflow} | Rest], WorkerArgs, State) when is_integer(Ma
 init([_ | Rest], WorkerArgs, State) ->
     init(Rest, WorkerArgs, State);
 init([], _WorkerArgs, #state{size = Size, supervisor = Sup} = State) ->
-    %使用supervisor:start_child(Sup, [])产生Size个worker，worker的id放在Workers数组里
+    %使用supervisor:start_child(Sup, [])产生Size个worker，worker的pid放在Workers数组里
     %并使用link()把所有worker都监控起来，如果worker退出则会收到'EXIT'信号
     Workers = prepopulate(Size, Sup),
     {ok, State#state{workers = Workers}}.
